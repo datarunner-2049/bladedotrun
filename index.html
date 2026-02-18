@@ -406,11 +406,13 @@
                     <div class="tile-status status-development">DEV</div>
                 </div>
                 <div class="tile-description">
-                    Environmental monitoring system. Real-time atmospheric data with cyberpunk aesthetics.
+                    Real-time solar activity monitor. NASA DONKI data — flares, CMEs, and geomagnetic storms.
                 </div>
-                <div class="tile-preview weather-preview">
-                    <div class="temp" id="temp">23°</div>
-                    <div class="condition">CLEAR SKY<br>HUMIDITY: 67%</div>
+                <div class="tile-preview">
+                    <div style="color: #ffc107;">
+                        SOLAR FLARES · CME · GST<br>
+                        NASA DONKI FEED
+                    </div>
                 </div>
             </div>
             
@@ -515,30 +517,17 @@
             // For now, just a console log
         }
         
-        // Simulate weather data update
-        function updateWeatherData() {
-            const temps = [18, 19, 21, 23, 25, 22, 20];
-            const temp = temps[Math.floor(Math.random() * temps.length)];
-            const tempElement = document.getElementById('temp');
-            if (tempElement) {
-                tempElement.textContent = temp + '°';
-            }
-        }
-        
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
             updateTime();
-            updateWeatherData();
-            
+
             // Update time every second
             setInterval(updateTime, 1000);
             
             // Create new particles periodically
             setInterval(createParticles, 20000);
             
-            // Update weather occasionally
-            setInterval(updateWeatherData, 30000);
         });
         
     </script>
