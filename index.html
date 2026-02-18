@@ -541,15 +541,6 @@
             setInterval(updateWeatherData, 30000);
         });
         
-        // Add some screen flicker effect
-        setInterval(() => {
-            if (Math.random() < 0.02) { // 2% chance every interval
-                document.body.style.filter = 'brightness(1.1) contrast(1.05)';
-                setTimeout(() => {
-                    document.body.style.filter = 'none';
-                }, 100);
-            }
-        }, 2000);
     </script>
 </body>
 </html>
