@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLADE.RUN - Weather Grid</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0f1c 0%, #1a1f2e 50%, #0f1419 100%);
+            color: #00d4ff;
+            font-family: 'Roboto Mono', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: -100px;
+            left: -100px;
+            width: calc(100% + 200px);
+            height: calc(100% + 200px);
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(10, 15, 28, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 1000;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 900;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            letter-spacing: 3px;
+            text-decoration: none;
+        }
+
+        .back-link {
+            font-size: 11px;
+            color: #888;
+            text-decoration: none;
+            letter-spacing: 1px;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            color: #00d4ff;
+            border-color: rgba(0, 212, 255, 0.6);
+        }
+
+        .system-info {
+            display: flex;
+            gap: 30px;
+            font-size: 12px;
+            color: #00ff88;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .main-container {
+            margin-top: 80px;
+            padding: 40px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .page-title h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 36px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .page-title p {
+            color: #888;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .date-range {
+            color: #00d4ff;
+            font-size: 11px;
+            margin-top: 8px;
+            opacity: 0.7;
+        }
+
+        .panels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: rgba(0, 20, 40, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .panel-subtitle {
+            font-size: 11px;
+            color: #555;
+            margin-bottom: 18px;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-fetching {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+
+        .badge-online {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+
+        .badge-error {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.4);
+        }
+
+        .events-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .events-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .events-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .events-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .event-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 4px;
+            padding: 12px 14px;
+            font-size: 11px;
+            line-height: 1.7;
+        }
+
+        .event-item:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+        }
+
+        .event-class {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .class-b { color: #888; }
+        .class-c { color: #00d4ff; }
+        .class-m { color: #ffc107; }
+        .class-x { color: #ff4444; text-shadow: 0 0 8px rgba(255, 68, 68, 0.5); }
+
+        .event-time {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .event-meta {
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        .kp-bar {
+            display: inline-block;
+            height: 8px;
+            border-radius: 2px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        .kp-low { background: #00ff88; }
+        .kp-mid { background: #ffc107; }
+        .kp-high { background: #ff4444; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #444;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .empty-state .icon {
+            font-size: 28px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #555;
+            font-size: 11px;
+            letter-spacing: 2px;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #ff4444;
+            font-size: 11px;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .divider {
+            border: none;
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            margin: 10px 0;
+        }
+
+        .panel-footer {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #444;
+            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 0 20px; }
+            .logo { font-size: 18px; }
+            .system-info { gap: 15px; font-size: 10px; }
+            .main-container { padding: 20px; }
+            .page-title h1 { font-size: 26px; }
+            .panels-grid { grid-template-columns: 1fr; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <header class="header">
+        <div class="header-left">
+            <a href="/" class="logo">BLADE.RUN</a>
+            <a href="/" class="back-link">← DASHBOARD</a>
+        </div>
+        <div class="system-info">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>WEATHER GRID</span>
+            </div>
+            <div id="current-time">00:00:00</div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="page-title">
+            <h1>SPACE WEATHER</h1>
+            <p>NASA DONKI — REAL-TIME SOLAR ACTIVITY MONITOR</p>
+            <div class="date-range" id="date-range">LOADING DATE RANGE...</div>
+        </div>
+
+        <div class="panels-grid">
+
+            <!-- Solar Flares -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">SOLAR FLARES</div>
+                    <div class="badge badge-fetching" id="flr-badge">FETCHING</div>
+                </div>
+                <div class="panel-subtitle">X-RAY BURST EVENTS — CLASS SEVERITY</div>
+                <div class="events-list" id="flr-list">
+                    <div class="loading-state">SCANNING FOR FLARE ACTIVITY...</div>
+                </div>
+                <div class="panel-footer">SOURCE: NASA DONKI / FLR</div>
+            </div>
+
+            <!-- CME -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">CORONAL MASS EJECTIONS</div>
+                    <div class="badge badge-fetching" id="cme-badge">FETCHING</div>
+                </div>
+                <div class="panel-subtitle">SOLAR PLASMA EJECTION EVENTS</div>
+                <div class="events-list" id="cme-list">
+                    <div class="loading-state">SCANNING FOR CME ACTIVITY...</div>
+                </div>
+                <div class="panel-footer">SOURCE: NASA DONKI / CME</div>
+            </div>
+
+            <!-- Geomagnetic Storms -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">GEOMAGNETIC STORMS</div>
+                    <div class="badge badge-fetching" id="gst-badge">FETCHING</div>
+                </div>
+                <div class="panel-subtitle">KP-INDEX MAGNETIC DISTURBANCES</div>
+                <div class="events-list" id="gst-list">
+                    <div class="loading-state">SCANNING FOR STORM ACTIVITY...</div>
+                </div>
+                <div class="panel-footer">SOURCE: NASA DONKI / GST</div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'DEMO_KEY';
+        const BASE_URL = 'https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get';
+
+        function getDateRange() {
+            const end = new Date();
+            const start = new Date();
+            start.setDate(start.getDate() - 7);
+            const fmt = d => d.toISOString().split('T')[0];
+            return { startDate: fmt(start), endDate: fmt(end) };
+        }
+
+        function formatTime(isoString) {
+            if (!isoString) return 'UNKNOWN TIME';
+            const d = new Date(isoString);
+            return d.toUTCString().replace('GMT', 'UTC').toUpperCase();
+        }
+
+        function setBadge(id, state) {
+            const el = document.getElementById(id);
+            el.className = 'badge';
+            if (state === 'online') { el.className += ' badge-online'; el.textContent = 'ONLINE'; }
+            else if (state === 'error') { el.className += ' badge-error'; el.textContent = 'ERROR'; }
+            else { el.className += ' badge-fetching'; el.textContent = 'FETCHING'; }
+        }
+
+        function renderEmpty(listId) {
+            document.getElementById(listId).innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">◌</div>
+                    NO EVENTS DETECTED<br>IN THE LAST 7 DAYS
+                </div>`;
+        }
+
+        function renderError(listId, msg) {
+            document.getElementById(listId).innerHTML = `
+                <div class="error-state">
+                    ⚠ FEED UNAVAILABLE<br><br>${msg}
+                </div>`;
+        }
+
+        function getFlareClass(classType) {
+            if (!classType) return { label: '?', cls: '' };
+            const letter = classType[0].toUpperCase();
+            const cls = { 'X': 'class-x', 'M': 'class-m', 'C': 'class-c', 'B': 'class-b' }[letter] || '';
+            return { label: classType, cls };
+        }
+
+        function renderFlares(data) {
+            const list = document.getElementById('flr-list');
+            if (!data || data.length === 0) { renderEmpty('flr-list'); return; }
+            const sorted = [...data].sort((a, b) => new Date(b.peakTime || b.beginTime) - new Date(a.peakTime || a.beginTime));
+            list.innerHTML = sorted.map(f => {
+                const { label, cls } = getFlareClass(f.classType);
+                const instrument = f.instruments?.[0]?.displayName || 'UNKNOWN INSTRUMENT';
+                return `<div class="event-item">
+                    <span class="event-class ${cls}">${label}</span>
+                    <div class="event-time">PEAK: ${formatTime(f.peakTime)}</div>
+                    <div class="event-meta">${instrument}</div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderCME(data) {
+            const list = document.getElementById('cme-list');
+            if (!data || data.length === 0) { renderEmpty('cme-list'); return; }
+            const sorted = [...data].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            list.innerHTML = sorted.map(c => {
+                const instrument = c.instruments?.[0]?.displayName || 'UNKNOWN INSTRUMENT';
+                const analysis = c.cmeAnalyses?.[0];
+                const speed = analysis?.speed ? `${Math.round(analysis.speed)} KM/S` : 'SPEED UNKNOWN';
+                const type = analysis?.type || '';
+                return `<div class="event-item">
+                    <span class="event-class class-m">${type ? type + ' TYPE' : 'CME EVENT'}</span>
+                    <div class="event-time">START: ${formatTime(c.startTime)}</div>
+                    <div class="event-meta">SPEED: ${speed} &nbsp;|&nbsp; ${instrument}</div>
+                    ${c.note ? `<div class="event-meta" style="color:#666;margin-top:4px;font-size:10px;">${c.note.substring(0, 80)}${c.note.length > 80 ? '...' : ''}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function renderGST(data) {
+            const list = document.getElementById('gst-list');
+            if (!data || data.length === 0) { renderEmpty('gst-list'); return; }
+            const sorted = [...data].sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+            list.innerHTML = sorted.map(g => {
+                const kpValues = g.allKpIndex || [];
+                const maxKp = kpValues.length > 0 ? Math.max(...kpValues.map(k => parseFloat(k.kpIndex) || 0)) : null;
+                let kpClass = 'kp-low', kpLabel = 'MINOR';
+                if (maxKp !== null) {
+                    if (maxKp >= 7) { kpClass = 'kp-high'; kpLabel = 'SEVERE'; }
+                    else if (maxKp >= 5) { kpClass = 'kp-mid'; kpLabel = 'MODERATE'; }
+                }
+                const kpDisplay = maxKp !== null
+                    ? `<span class="kp-bar ${kpClass}" style="width:${Math.min(maxKp * 8, 60)}px"></span>KP ${maxKp.toFixed(1)} — ${kpLabel}`
+                    : 'KP DATA PENDING';
+                return `<div class="event-item">
+                    <span class="event-class ${kpClass === 'kp-high' ? 'class-x' : kpClass === 'kp-mid' ? 'class-m' : 'class-c'}">STORM</span>
+                    <div class="event-time">START: ${formatTime(g.startTime)}</div>
+                    <div class="event-meta" style="margin-top:4px;">${kpDisplay}</div>
+                </div>`;
+            }).join('');
+        }
+
+        async function fetchAll() {
+            const { startDate, endDate } = getDateRange();
+            document.getElementById('date-range').textContent =
+                `DATA RANGE: ${startDate} → ${endDate} (UTC)`;
+
+            const params = `?startDate=${startDate}&endDate=${endDate}&api_key=${API_KEY}`;
+
+            const [flrResult, cmeResult, gstResult] = await Promise.allSettled([
+                fetch(`${BASE_URL}/FLR${params}`).then(r => r.json()),
+                fetch(`${BASE_URL}/CME${params}`).then(r => r.json()),
+                fetch(`${BASE_URL}/GST${params}`).then(r => r.json()),
+            ]);
+
+            if (flrResult.status === 'fulfilled') {
+                renderFlares(flrResult.value);
+                setBadge('flr-badge', 'online');
+            } else {
+                renderError('flr-list', flrResult.reason?.message || 'FETCH FAILED');
+                setBadge('flr-badge', 'error');
+            }
+
+            if (cmeResult.status === 'fulfilled') {
+                renderCME(cmeResult.value);
+                setBadge('cme-badge', 'online');
+            } else {
+                renderError('cme-list', cmeResult.reason?.message || 'FETCH FAILED');
+                setBadge('cme-badge', 'error');
+            }
+
+            if (gstResult.status === 'fulfilled') {
+                renderGST(gstResult.value);
+                setBadge('gst-badge', 'online');
+            } else {
+                renderError('gst-list', gstResult.reason?.message || 'FETCH FAILED');
+                setBadge('gst-badge', 'error');
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', {
+                hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTime();
+            setInterval(updateTime, 1000);
+            fetchAll();
+        });
+    </script>
+</body>
+</html>
