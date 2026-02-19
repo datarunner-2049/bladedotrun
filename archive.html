@@ -210,10 +210,14 @@
         }
 
         .card-os-icon {
-            font-size: 42px;
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #00d4ff;
             text-align: center;
+            letter-spacing: 3px;
             margin-bottom: 18px;
-            filter: drop-shadow(0 0 8px rgba(0, 212, 255, 0.4));
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
         .card-description {
@@ -321,7 +325,7 @@
                     <div class="card-title">WINDOWS SETUP</div>
                     <div class="card-badge">READY</div>
                 </div>
-                <div class="card-os-icon">🪟</div>
+                <div class="card-os-icon">[ WIN ]</div>
                 <div class="card-description">
                     PowerShell script — installs the latest version of each app via
                     <strong style="color:#00d4ff">winget</strong>, the built-in Windows package manager.
@@ -348,7 +352,7 @@
                     <div class="card-title">LINUX SETUP</div>
                     <div class="card-badge">READY</div>
                 </div>
-                <div class="card-os-icon">🐧</div>
+                <div class="card-os-icon">[ LNX ]</div>
                 <div class="card-description">
                     Bash script — auto-detects your distro family and uses the appropriate
                     package manager. Supports <strong style="color:#00d4ff">Debian/Ubuntu</strong>,
