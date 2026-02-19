@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLADE.RUN - Diagnostic Mode</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto+Mono:wght@300;400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            background: linear-gradient(135deg, #0a0f1c 0%, #1a1f2e 50%, #0f1419 100%);
+            background-attachment: fixed;
+        }
+
+        body {
+            background: transparent;
+            color: #00d4ff;
+            font-family: 'Roboto Mono', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated background grid */
+        .grid-bg {
+            position: fixed;
+            top: -100px;
+            left: -100px;
+            width: calc(100% + 200px);
+            height: calc(100% + 200px);
+            background-image:
+                linear-gradient(rgba(0, 212, 255, 0.25) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.25) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #00d4ff;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00d4ff;
+            opacity: 0.8;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10px) translateX(100px); opacity: 0; }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(10, 15, 28, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 1000;
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 900;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            letter-spacing: 3px;
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: #00d4ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .back-link:hover { opacity: 1; }
+
+        /* Main container */
+        .main-container {
+            margin-top: 80px;
+            padding: 40px;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .page-title h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .page-title p {
+            color: #888;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        /* Query bar */
+        .query-bar {
+            display: flex;
+            gap: 12px;
+            max-width: 900px;
+            margin: 0 auto 36px auto;
+        }
+
+        .query-bar input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.4);
+            border-radius: 6px;
+            padding: 12px 16px;
+            color: #00d4ff;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 13px;
+            letter-spacing: 1px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .query-bar input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+        }
+
+        .query-bar input::placeholder {
+            color: #444;
+        }
+
+        #run-btn {
+            padding: 12px 28px;
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid rgba(0, 212, 255, 0.6);
+            border-radius: 6px;
+            color: #00d4ff;
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #run-btn:hover {
+            background: rgba(0, 212, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+            color: #fff;
+        }
+
+        #run-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Two-column layout */
+        .diag-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: start;
+        }
+
+        /* History sidebar */
+        .history-sidebar {
+            background: rgba(0, 20, 40, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 100px;
+            max-height: calc(100vh - 120px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .clear-btn {
+            background: none;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 4px;
+            color: #ff4444;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 1px;
+            padding: 3px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .clear-btn:hover { background: rgba(255, 68, 68, 0.1); }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .history-list::-webkit-scrollbar { width: 4px; }
+        .history-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .history-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+
+        .history-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 4px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            font-size: 11px;
+        }
+
+        .history-item:hover { border-color: rgba(0, 212, 255, 0.4); }
+
+        .hist-query {
+            color: #00d4ff;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .hist-time {
+            color: #555;
+            font-size: 9px;
+            margin-top: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Panels grid */
+        .panels-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .panel-wide {
+            grid-column: 1 / -1;
+        }
+
+        /* Panel base */
+        .panel {
+            background: rgba(0, 20, 40, 0.4);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 8px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+        }
+
+        .panel-subtitle {
+            font-size: 10px;
+            color: #555;
+            margin-bottom: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .panel-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .panel-footer {
+            margin-top: 14px;
+            font-size: 10px;
+            color: #444;
+            letter-spacing: 0.5px;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badge-ready {
+            background: rgba(100, 100, 100, 0.15);
+            color: #666;
+            border: 1px solid rgba(100, 100, 100, 0.3);
+        }
+
+        .badge-fetching {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+
+        .badge-online {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+
+        .badge-error {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.4);
+        }
+
+        /* States */
+        .idle-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #333;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #555;
+            font-size: 11px;
+            letter-spacing: 2px;
+            animation: blink 1.2s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #ff4444;
+            font-size: 11px;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #444;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        /* Data rows */
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 11px;
+            padding: 6px 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 212, 255, 0.08);
+            gap: 12px;
+        }
+
+        .data-label {
+            color: #555;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .data-value {
+            color: #00d4ff;
+            text-align: right;
+            word-break: break-all;
+        }
+
+        .data-value.val-green { color: #00ff88; }
+        .data-value.val-yellow { color: #ffc107; }
+        .data-value.val-red { color: #ff4444; }
+
+        .section-divider {
+            font-size: 9px;
+            color: #444;
+            letter-spacing: 1px;
+            padding: 4px 0 2px 2px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.08);
+            margin-bottom: 2px;
+        }
+
+        /* SSL cert rows */
+        .cert-block {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 212, 255, 0.1);
+            border-radius: 4px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .cert-block .data-row {
+            background: transparent;
+            border: none;
+            padding: 2px 0;
+        }
+
+        /* Coordinate grid */
+        .coord-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .coord-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 212, 255, 0.15);
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .coord-label {
+            font-size: 9px;
+            color: #555;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .coord-value {
+            font-size: 14px;
+            color: #00d4ff;
+            font-weight: 500;
+        }
+
+        /* HTTP header chips */
+        .header-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .header-chip {
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+        }
+
+        .header-chip.present {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            color: #00ff88;
+        }
+
+        .header-chip.missing {
+            background: rgba(255, 68, 68, 0.08);
+            border: 1px solid rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .header-chip.unknown {
+            background: rgba(255, 193, 7, 0.08);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .chip-name {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 1px;
+        }
+
+        .chip-status {
+            font-size: 9px;
+            opacity: 0.7;
+        }
+
+        .cors-notice {
+            font-size: 10px;
+            color: #ffc107;
+            background: rgba(255, 193, 7, 0.07);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 4px;
+            padding: 8px 10px;
+            letter-spacing: 0.5px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        /* DNS resolver rows */
+        .resolver-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 4px;
+            border: 1px solid rgba(0, 212, 255, 0.08);
+            font-size: 11px;
+        }
+
+        .resolver-name {
+            color: #888;
+            width: 100px;
+            flex-shrink: 0;
+            letter-spacing: 0.5px;
+        }
+
+        .resolver-ips {
+            color: #00d4ff;
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .resolver-chip {
+            font-size: 9px;
+            padding: 2px 7px;
+            border-radius: 3px;
+            letter-spacing: 1px;
+            flex-shrink: 0;
+        }
+
+        .resolver-chip.ok {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .resolver-chip.err {
+            background: rgba(255, 68, 68, 0.15);
+            color: #ff4444;
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
+        .dns-summary {
+            margin-top: 6px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .dns-summary.consistent {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .dns-summary.inconsistent {
+            background: rgba(255, 193, 7, 0.08);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        /* Responsive */
+        @media (max-width: 1100px) {
+            .diag-layout {
+                grid-template-columns: 1fr;
+            }
+            .history-sidebar {
+                position: static;
+                max-height: 220px;
+            }
+            .panels-grid {
+                grid-template-columns: 1fr;
+            }
+            .panel-wide {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: 0 20px; }
+            .logo { font-size: 18px; }
+            .main-container { padding: 20px; }
+            .page-title h1 { font-size: 24px; }
+            .query-bar { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <header class="header">
+        <a href="/" class="logo">BLADE.RUN</a>
+        <a href="/" class="back-link">← DASHBOARD</a>
+    </header>
+
+    <div class="main-container">
+        <div class="page-title">
+            <h1>DIAGNOSTIC MODE</h1>
+            <p>NETWORK INTELLIGENCE — DOMAIN · IP · SSL · DNS · HEADERS</p>
+        </div>
+
+        <div class="query-bar">
+            <input type="text" id="query-input"
+                   placeholder="ENTER DOMAIN OR IP ADDRESS  (e.g. example.com or 8.8.8.8)"
+                   autocomplete="off" spellcheck="false" />
+            <button id="run-btn" onclick="runAll()">RUN</button>
+        </div>
+
+        <div class="diag-layout">
+
+            <!-- Command History Sidebar -->
+            <aside class="history-sidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">COMMAND HISTORY</span>
+                    <button class="clear-btn" onclick="clearHistory()">CLEAR</button>
+                </div>
+                <div class="history-list" id="history-list">
+                    <div class="empty-state">NO QUERIES YET</div>
+                </div>
+            </aside>
+
+            <!-- Main panels -->
+            <div class="panels-grid">
+
+                <!-- Panel 1: Domain / IP Lookup -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">DOMAIN / IP LOOKUP</div>
+                        <div class="badge badge-ready" id="lookup-badge">READY</div>
+                    </div>
+                    <div class="panel-subtitle">RDAP · WHOIS · ASN · ISP</div>
+                    <div class="panel-body" id="lookup-body">
+                        <div class="idle-state">AWAITING QUERY</div>
+                    </div>
+                    <div class="panel-footer">SOURCE: rdap.org · rdap.arin.net · ipapi.co</div>
+                </div>
+
+                <!-- Panel 2: SSL Certificate -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">SSL CERTIFICATE</div>
+                        <div class="badge badge-ready" id="ssl-badge">READY</div>
+                    </div>
+                    <div class="panel-subtitle">CERTIFICATE TRANSPARENCY LOG</div>
+                    <div class="panel-body" id="ssl-body">
+                        <div class="idle-state">AWAITING QUERY</div>
+                    </div>
+                    <div class="panel-footer">SOURCE: crt.sh</div>
+                </div>
+
+                <!-- Panel 3: Geolocation -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">GEOLOCATION</div>
+                        <div class="badge badge-ready" id="geo-badge">READY</div>
+                    </div>
+                    <div class="panel-subtitle">IP COORDINATE READOUT</div>
+                    <div class="panel-body" id="geo-body">
+                        <div class="idle-state">AWAITING QUERY</div>
+                    </div>
+                    <div class="panel-footer">SOURCE: ipapi.co</div>
+                </div>
+
+                <!-- Panel 4: HTTP Headers (wide) -->
+                <div class="panel panel-wide">
+                    <div class="panel-header">
+                        <div class="panel-title">HTTP HEADERS</div>
+                        <div class="badge badge-ready" id="headers-badge">READY</div>
+                    </div>
+                    <div class="panel-subtitle">SECURITY HEADER ANALYSIS — PROXY LIMITED</div>
+                    <div class="panel-body" id="headers-body">
+                        <div class="idle-state">AWAITING QUERY</div>
+                    </div>
+                    <div class="panel-footer">SOURCE: allorigins.win proxy</div>
+                </div>
+
+                <!-- Panel 5: DNS Propagation (wide) -->
+                <div class="panel panel-wide">
+                    <div class="panel-header">
+                        <div class="panel-title">DNS PROPAGATION</div>
+                        <div class="badge badge-ready" id="dns-badge">READY</div>
+                    </div>
+                    <div class="panel-subtitle">MULTI-RESOLVER A RECORD CHECK</div>
+                    <div class="panel-body" id="dns-body">
+                        <div class="idle-state">AWAITING QUERY</div>
+                    </div>
+                    <div class="panel-footer">SOURCE: dns.google · cloudflare-dns.com · doh.opendns.com</div>
+                </div>
+
+            </div><!-- /.panels-grid -->
+        </div><!-- /.diag-layout -->
+    </div><!-- /.main-container -->
+
+    <script>
+        // ─── STATE ───────────────────────────────────────────────────────────
+        const cmdHistory = [];
+        let ipapiCache = null; // shared between Lookup + Geo panels
+
+        // ─── UTILITIES ───────────────────────────────────────────────────────
+
+        function isIP(str) {
+            return /^(\d{1,3}\.){3}\d{1,3}$/.test(str);
+        }
+
+        function stripProtocol(str) {
+            return str.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+        }
+
+        function sanitizeQuery(str) {
+            return stripProtocol(str.trim());
+        }
+
+        function nowTimestamp() {
+            return new Date().toLocaleTimeString('en-US', {
+                hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+
+        function setBadge(id, state) {
+            const el = document.getElementById(id);
+            const map = {
+                ready:    ['badge-ready',    'READY'],
+                fetching: ['badge-fetching', 'FETCHING'],
+                online:   ['badge-online',   'ONLINE'],
+                error:    ['badge-error',    'ERROR'],
+            };
+            const [cls, text] = map[state] || map.ready;
+            el.className = `badge ${cls}`;
+            el.textContent = text;
+        }
+
+        function setAllBadges(state) {
+            ['lookup-badge','ssl-badge','geo-badge','headers-badge','dns-badge']
+                .forEach(id => setBadge(id, state));
+        }
+
+        function renderLoading(bodyId, msg) {
+            document.getElementById(bodyId).innerHTML =
+                `<div class="loading-state">${msg}</div>`;
+        }
+
+        function renderError(bodyId, msg) {
+            document.getElementById(bodyId).innerHTML =
+                `<div class="error-state">⚠ ${msg}</div>`;
+        }
+
+        function dataRow(label, value, cls) {
+            const valClass = cls ? ` ${cls}` : '';
+            return `<div class="data-row">
+                <span class="data-label">${label}</span>
+                <span class="data-value${valClass}">${value || 'N/A'}</span>
+            </div>`;
+        }
+
+        function sectionDivider(label) {
+            return `<div class="section-divider">${label}</div>`;
+        }
+
+        // ─── COMMAND HISTORY ─────────────────────────────────────────────────
+
+        function addToHistory(query) {
+            cmdHistory.unshift({ query, time: nowTimestamp() });
+            if (cmdHistory.length > 50) cmdHistory.pop();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const el = document.getElementById('history-list');
+            if (cmdHistory.length === 0) {
+                el.innerHTML = '<div class="empty-state">NO QUERIES YET</div>';
+                return;
+            }
+            el.innerHTML = cmdHistory.map((h, i) =>
+                `<div class="history-item" onclick="rerunQuery(${i})">
+                    <div class="hist-query">${escapeHtml(h.query)}</div>
+                    <div class="hist-time">${h.time}</div>
+                </div>`
+            ).join('');
+        }
+
+        function rerunQuery(index) {
+            const h = cmdHistory[index];
+            if (!h) return;
+            document.getElementById('query-input').value = h.query;
+            runAll();
+        }
+
+        function clearHistory() {
+            cmdHistory.length = 0;
+            renderHistory();
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        // ─── DNS HELPER ──────────────────────────────────────────────────────
+
+        async function resolveARecord(domain) {
+            try {
+                const r = await fetch(
+                    `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=A`,
+                    { headers: { Accept: 'application/dns-json' } }
+                );
+                const j = await r.json();
+                return j.Answer?.find(a => a.type === 1)?.data || null;
+            } catch { return null; }
+        }
+
+        // ─── PANEL 1: DOMAIN / IP LOOKUP ─────────────────────────────────────
+
+        async function runLookup(query, cachedIpapi) {
+            setBadge('lookup-badge', 'fetching');
+            renderLoading('lookup-body', 'QUERYING RDAP...');
+
+            const ipMode = isIP(query);
+            const rdapUrl = ipMode
+                ? `https://rdap.arin.net/registry/ip/${query}`
+                : `https://rdap.org/domain/${encodeURIComponent(query)}`;
+
+            try {
+                const rdapResp = await fetch(rdapUrl);
+                if (!rdapResp.ok) throw new Error(`RDAP HTTP ${rdapResp.status}`);
+                const rdap = await rdapResp.json();
+
+                let html = '';
+
+                if (ipMode) {
+                    // IP RDAP (ARIN)
+                    const name    = rdap.name || rdap.handle || 'N/A';
+                    const cidr    = rdap.cidr0_cidrs?.map(c => `${c.v4prefix || c.v6prefix}/${c.length}`).join(', ') || 'N/A';
+                    const country = rdap.country || 'N/A';
+                    const events  = rdap.events || [];
+                    const reg     = events.find(e => e.eventAction === 'registration')?.eventDate?.slice(0,10) || 'N/A';
+
+                    html += sectionDivider('NET BLOCK');
+                    html += dataRow('NET NAME', name);
+                    html += dataRow('CIDR', cidr);
+                    html += dataRow('COUNTRY', country);
+                    html += dataRow('ALLOCATED', reg);
+                } else {
+                    // Domain RDAP
+                    const ldhName = rdap.ldhName || query;
+                    const status  = (rdap.status || []).join(', ') || 'N/A';
+                    const events  = rdap.events || [];
+                    const reg     = events.find(e => e.eventAction === 'registration')?.eventDate?.slice(0,10) || 'N/A';
+                    const expiry  = events.find(e => e.eventAction === 'expiration')?.eventDate?.slice(0,10) || 'N/A';
+                    const registrar = rdap.entities
+                        ?.find(e => e.roles?.includes('registrar'))
+                        ?.vcardArray?.[1]?.find(v => v[0] === 'fn')?.[3] || 'N/A';
+                    const ns = (rdap.nameservers || []).map(n => n.ldhName).join(', ') || 'N/A';
+
+                    html += sectionDivider('DOMAIN');
+                    html += dataRow('DOMAIN', ldhName);
+                    html += dataRow('REGISTRAR', registrar);
+                    html += dataRow('REGISTERED', reg);
+                    html += dataRow('EXPIRES', expiry);
+                    html += dataRow('STATUS', status);
+                    html += sectionDivider('NAMESERVERS');
+                    html += dataRow('NS', ns);
+                }
+
+                // ASN / ISP from cached ipapi call
+                if (cachedIpapi && !cachedIpapi.error) {
+                    html += sectionDivider('NETWORK');
+                    html += dataRow('IP', cachedIpapi.ip || 'N/A');
+                    html += dataRow('ASN', cachedIpapi.asn || 'N/A');
+                    html += dataRow('ISP', cachedIpapi.isp || 'N/A');
+                    html += dataRow('ORG', cachedIpapi.org || 'N/A');
+                }
+
+                document.getElementById('lookup-body').innerHTML = html;
+                setBadge('lookup-badge', 'online');
+            } catch (e) {
+                renderError('lookup-body', e.message || 'RDAP LOOKUP FAILED');
+                setBadge('lookup-badge', 'error');
+            }
+        }
+
+        // ─── PANEL 2: SSL CERTIFICATE ─────────────────────────────────────────
+
+        async function runSSL(query) {
+            setBadge('ssl-badge', 'fetching');
+            renderLoading('ssl-body', 'QUERYING CT LOGS — MAY TAKE 5s...');
+
+            const domain = stripProtocol(query);
+
+            try {
+                const r = await fetch(
+                    `https://crt.sh/?q=${encodeURIComponent(domain)}&output=json`
+                );
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const certs = await r.json();
+                if (!Array.isArray(certs) || certs.length === 0) {
+                    document.getElementById('ssl-body').innerHTML =
+                        '<div class="empty-state">NO CERTIFICATES FOUND IN CT LOGS</div>';
+                    setBadge('ssl-badge', 'online');
+                    return;
+                }
+
+                // Deduplicate and sort by expiry desc — take top 3
+                const seen = new Set();
+                const deduped = certs
+                    .filter(c => {
+                        const key = `${c.issuer_name}|${c.serial_number}`;
+                        if (seen.has(key)) return false;
+                        seen.add(key);
+                        return true;
+                    })
+                    .sort((a, b) => new Date(b.not_after) - new Date(a.not_after))
+                    .slice(0, 3);
+
+                const now = Date.now();
+                let html = '';
+
+                deduped.forEach((cert, i) => {
+                    const expiry = new Date(cert.not_after);
+                    const issued = new Date(cert.not_before);
+                    const daysLeft = Math.floor((expiry - now) / 86400000);
+                    const issuerCN = (cert.issuer_name.match(/CN=([^,]+)/) || [])[1]
+                        || cert.issuer_name.slice(0, 40);
+                    const commonName = cert.common_name || cert.name_value?.split('\n')[0] || 'N/A';
+
+                    let statusText, statusCls;
+                    if (daysLeft < 0) {
+                        statusText = 'EXPIRED'; statusCls = 'val-red';
+                    } else if (daysLeft < 30) {
+                        statusText = `EXPIRES IN ${daysLeft}d`; statusCls = 'val-yellow';
+                    } else {
+                        statusText = `VALID (${daysLeft}d)`; statusCls = 'val-green';
+                    }
+
+                    if (i > 0) html += '<div style="height:6px"></div>';
+                    html += `<div class="cert-block">`;
+                    html += dataRow('COMMON NAME', escapeHtml(commonName));
+                    html += dataRow('ISSUER', escapeHtml(issuerCN));
+                    html += dataRow('ISSUED', issued.toISOString().slice(0,10));
+                    html += dataRow('EXPIRES', expiry.toISOString().slice(0,10));
+                    html += dataRow('STATUS', statusText, statusCls);
+                    html += `</div>`;
+                });
+
+                document.getElementById('ssl-body').innerHTML = html;
+                setBadge('ssl-badge', 'online');
+            } catch (e) {
+                renderError('ssl-body', e.message || 'CT LOG QUERY FAILED');
+                setBadge('ssl-badge', 'error');
+            }
+        }
+
+        // ─── PANEL 3: GEOLOCATION ─────────────────────────────────────────────
+
+        async function runGeo(query, cachedIpapi) {
+            setBadge('geo-badge', 'fetching');
+            renderLoading('geo-body', 'LOCATING...');
+
+            try {
+                const data = cachedIpapi;
+                if (!data || data.error) throw new Error(data?.reason || 'API ERROR');
+
+                const lat = data.latitude?.toFixed(4) ?? 'N/A';
+                const lon = data.longitude?.toFixed(4) ?? 'N/A';
+
+                let html = '';
+                html += dataRow('IP', data.ip || 'N/A');
+                html += dataRow('CITY', data.city || 'N/A');
+                html += dataRow('REGION', data.region || 'N/A');
+                html += dataRow('COUNTRY', `${data.country_name || 'N/A'} (${data.country_code || '??'})`);
+                html += dataRow('POSTAL', data.postal || 'N/A');
+                html += dataRow('TIMEZONE', data.timezone || 'N/A');
+                html += dataRow('ISP', data.isp || 'N/A');
+                html += dataRow('ORG', data.org || 'N/A');
+
+                html += `<div class="coord-grid">
+                    <div class="coord-box">
+                        <div class="coord-label">LATITUDE</div>
+                        <div class="coord-value">${lat}</div>
+                    </div>
+                    <div class="coord-box">
+                        <div class="coord-label">LONGITUDE</div>
+                        <div class="coord-value">${lon}</div>
+                    </div>
+                </div>`;
+
+                document.getElementById('geo-body').innerHTML = html;
+                setBadge('geo-badge', 'online');
+            } catch (e) {
+                renderError('geo-body', e.message || 'GEOLOCATION FAILED');
+                setBadge('geo-badge', 'error');
+            }
+        }
+
+        // ─── PANEL 4: HTTP HEADERS ────────────────────────────────────────────
+
+        const SECURITY_HEADERS = [
+            'strict-transport-security',
+            'x-frame-options',
+            'x-content-type-options',
+            'content-security-policy',
+            'referrer-policy',
+            'permissions-policy',
+        ];
+
+        const HEADER_LABELS = {
+            'strict-transport-security': 'HSTS',
+            'x-frame-options': 'X-Frame-Options',
+            'x-content-type-options': 'X-Content-Type-Options',
+            'content-security-policy': 'CSP',
+            'referrer-policy': 'Referrer-Policy',
+            'permissions-policy': 'Permissions-Policy',
+        };
+
+        async function runHeaders(query) {
+            setBadge('headers-badge', 'fetching');
+            renderLoading('headers-body', 'FETCHING VIA PROXY...');
+
+            const targetUrl = query.startsWith('http') ? query : `https://${query}`;
+
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                const r = await fetch(proxyUrl);
+                if (!r.ok) throw new Error(`PROXY HTTP ${r.status}`);
+                const j = await r.json();
+                const httpCode = j.status?.http_code;
+
+                let html = '';
+                html += `<div class="cors-notice">
+                    ⚠ BROWSER CORS RESTRICTIONS — SECURITY HEADER STATUS IS UNKNOWN.<br>
+                    A SERVER-SIDE PROXY IS REQUIRED TO INSPECT RESPONSE HEADERS.<br>
+                    SHOWING REACHABILITY ONLY.
+                </div>`;
+
+                html += dataRow('TARGET URL', escapeHtml(targetUrl));
+                html += dataRow('HTTP STATUS',
+                    httpCode ? String(httpCode) : 'N/A',
+                    httpCode >= 200 && httpCode < 400 ? 'val-green' : 'val-red'
+                );
+
+                html += `<div class="section-divider">SECURITY HEADERS — STATUS UNKNOWN (PROXY LIMITED)</div>`;
+                html += `<div class="header-grid">`;
+                SECURITY_HEADERS.forEach(h => {
+                    html += `<div class="header-chip unknown">
+                        <span class="chip-name">${HEADER_LABELS[h]}</span>
+                        <span class="chip-status">UNKNOWN — PROXY LIMITED</span>
+                    </div>`;
+                });
+                html += `</div>`;
+
+                document.getElementById('headers-body').innerHTML = html;
+                setBadge('headers-badge', httpCode >= 200 && httpCode < 400 ? 'online' : 'error');
+            } catch (e) {
+                renderError('headers-body', 'PROXY UNAVAILABLE — ' + (e.message || 'CORS BLOCKED'));
+                setBadge('headers-badge', 'error');
+            }
+        }
+
+        // ─── PANEL 5: DNS PROPAGATION ─────────────────────────────────────────
+
+        const DNS_RESOLVERS = [
+            {
+                name: 'GOOGLE',
+                url: d => `https://dns.google/resolve?name=${encodeURIComponent(d)}&type=A`,
+                opts: {}
+            },
+            {
+                name: 'CLOUDFLARE',
+                url: d => `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(d)}&type=A`,
+                opts: { headers: { Accept: 'application/dns-json' } }
+            },
+            {
+                name: 'OPENDNS',
+                url: d => `https://doh.opendns.com/dns-query?name=${encodeURIComponent(d)}&type=A`,
+                opts: { headers: { Accept: 'application/dns-json' } }
+            },
+        ];
+
+        async function runDNS(query) {
+            setBadge('dns-badge', 'fetching');
+            renderLoading('dns-body', 'QUERYING RESOLVERS...');
+
+            const domain = stripProtocol(query);
+
+            const results = await Promise.allSettled(
+                DNS_RESOLVERS.map(res =>
+                    fetch(res.url(domain), res.opts)
+                        .then(r => r.json())
+                        .then(j => ({
+                            name: res.name,
+                            ips: (j.Answer || []).filter(a => a.type === 1).map(a => a.data),
+                            status: j.Status,
+                        }))
+                )
+            );
+
+            let html = '';
+            const resolvedIpSets = [];
+
+            results.forEach((r, i) => {
+                const resName = DNS_RESOLVERS[i].name;
+                if (r.status === 'fulfilled') {
+                    const { ips, status } = r.value;
+                    const ok = status === 0 && ips.length > 0;
+                    resolvedIpSets.push(ips.sort().join(','));
+                    html += `<div class="resolver-row">
+                        <span class="resolver-name">${resName}</span>
+                        <span class="resolver-ips">${ips.length > 0 ? ips.join(', ') : 'NXDOMAIN'}</span>
+                        <span class="resolver-chip ${ok ? 'ok' : 'err'}">${ok ? 'OK' : 'NO RECORD'}</span>
+                    </div>`;
+                } else {
+                    html += `<div class="resolver-row">
+                        <span class="resolver-name">${resName}</span>
+                        <span class="resolver-ips" style="color:#555">QUERY FAILED</span>
+                        <span class="resolver-chip err">ERROR</span>
+                    </div>`;
+                }
+            });
+
+            // Consistency summary
+            const validSets = resolvedIpSets.filter(Boolean);
+            if (validSets.length > 1) {
+                const allSame = validSets.every(s => s === validSets[0]);
+                html += `<div class="dns-summary ${allSame ? 'consistent' : 'inconsistent'}">
+                    ${allSame ? '✓ DNS CONSISTENT ACROSS ALL RESOLVERS' : '⚠ DNS INCONSISTENT — PROPAGATION MAY BE IN PROGRESS'}
+                </div>`;
+            }
+
+            document.getElementById('dns-body').innerHTML = html;
+            const anyOk = results.some(r => r.status === 'fulfilled' && r.value.ips?.length > 0);
+            setBadge('dns-badge', anyOk ? 'online' : 'error');
+        }
+
+        // ─── ORCHESTRATION ────────────────────────────────────────────────────
+
+        async function runAll() {
+            const raw = document.getElementById('query-input').value.trim();
+            if (!raw) return;
+
+            const query = sanitizeQuery(raw);
+            const btn = document.getElementById('run-btn');
+            btn.disabled = true;
+
+            setAllBadges('fetching');
+            ['lookup-body','ssl-body','geo-body','headers-body','dns-body'].forEach(id => {
+                renderLoading(id, 'QUERYING...');
+            });
+
+            addToHistory(query);
+            ipapiCache = null;
+
+            // Fetch ipapi.co once — shared by Lookup and Geo
+            const ip = isIP(query) ? query : await resolveARecord(query);
+            if (ip) {
+                try {
+                    const r = await fetch(`https://ipapi.co/${ip}/json/`);
+                    ipapiCache = await r.json();
+                } catch { ipapiCache = null; }
+            }
+
+            await Promise.allSettled([
+                runLookup(query, ipapiCache),
+                runSSL(query),
+                runGeo(query, ipapiCache),
+                runHeaders(query),
+                runDNS(query),
+            ]);
+
+            btn.disabled = false;
+        }
+
+        // ─── PARTICLES ────────────────────────────────────────────────────────
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const p = document.createElement('div');
+                    p.className = 'particle';
+                    p.style.left = Math.random() * 100 + '%';
+                    p.style.animationDelay = Math.random() * 15 + 's';
+                    p.style.animationDuration = (15 + Math.random() * 10) + 's';
+                    container.appendChild(p);
+                    setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, 25000);
+                }, i * 1000);
+            }
+        }
+
+        // ─── INIT ─────────────────────────────────────────────────────────────
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            setInterval(createParticles, 20000);
+
+            document.getElementById('query-input').addEventListener('keydown', e => {
+                if (e.key === 'Enter') runAll();
+            });
+        });
+    </script>
+</body>
+</html>

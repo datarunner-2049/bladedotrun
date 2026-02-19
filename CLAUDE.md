@@ -36,9 +36,10 @@ All styles, markup, and JavaScript are inline within each HTML file. No framewor
 - Tile click animation via `handleTileClick()`
 
 **Current panel states:**
-- Code Runner, Memory Bank, ID Generator, Diagnostic Mode — `status-offline` (red)
+- Code Runner, Memory Bank, ID Generator — `status-offline` (red)
 - Weather Grid — `status-online` (green), links to `weather.html`
 - Archive Access — `status-online` (green), links to `archive.html`
+- Diagnostic Mode — `status-online` (green), links to `diagnostic.html`
 
 ## Weather Page (weather.html)
 
@@ -71,6 +72,34 @@ Both scripts install: Chrome, Steam, Claude, Discord.
 - Download links use the `download` attribute to trigger file download
 - Usage instructions shown in a `.usage-block` beneath the download button
 - Shares the same visual style as other pages (grid-bg, particles, back-link)
+
+## Diagnostic Page (diagnostic.html)
+
+IT sysadmin network intelligence tool. Single shared query input triggers all 5 panels in parallel via `Promise.allSettled`. No backend — all APIs are CORS-friendly public endpoints.
+
+| Panel | API | Notes |
+|-------|-----|-------|
+| Domain/IP Lookup | `rdap.org/domain/{d}` or `rdap.arin.net/registry/ip/{ip}` + `ipapi.co/{ip}/json/` | RDAP for registration data, ipapi.co for ASN/ISP |
+| SSL Certificate | `crt.sh/?q={domain}&output=json` | Certificate transparency logs — not live cert |
+| Geolocation | `ipapi.co/{ip}/json/` | Shared fetch with Lookup panel to avoid duplicate calls |
+| HTTP Headers | `api.allorigins.win/get?url={url}` | CORS proxy — confirms reachability + HTTP status only; security header state is UNKNOWN |
+| DNS Propagation | `dns.google/resolve`, `cloudflare-dns.com/dns-query`, `doh.opendns.com/dns-query` | DoH queries for A records across 3 resolvers |
+
+**Key JS functions:**
+- `runAll()` — orchestrates all 5 panels, resolves IP + fetches ipapi.co once and passes result to `runLookup()` and `runGeo()`
+- `setBadge(id, state)` — states: `ready` / `fetching` / `online` / `error`
+- `resolveARecord(domain)` — Cloudflare DoH helper, shared by Lookup + Geo
+- `addToHistory(query)` / `rerunQuery(index)` — session-only command history sidebar (max 50 entries)
+
+**Layout:** Two-column — 260px sticky history sidebar + responsive 2-col panels grid. Panels 4 & 5 span full width (`.panel-wide`). Collapses to single column below 1100px.
+
+## Background Effects
+
+All pages share the same animated grid + particle system:
+- `html` carries the gradient background (`background-attachment: fixed`); `body` is `background: transparent`
+- `.grid-bg` — fixed position, `z-index: -1`, CSS grid lines at `rgba(0,212,255,0.25)` opacity, animated via `gridMove` keyframes
+- `.particles` — JS-created `.particle` divs (3px, glowing teal dots) float upward via `float` keyframe animation
+- `createParticles()` creates 20 particles on load, repeats every 20s
 
 ## Git Config
 
