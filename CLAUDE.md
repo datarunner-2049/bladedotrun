@@ -16,6 +16,9 @@ Then open `http://localhost:3000` in the browser.
 
 - `index.html` — main dashboard
 - `weather.html` — space weather page, linked from the Weather Grid tile
+- `archive.html` — setup scripts download page, linked from the Archive Access tile
+- `scripts/setup.ps1` — Windows setup script (winget-based)
+- `scripts/setup.sh` — Linux setup script (multi-distro bash)
 
 All styles, markup, and JavaScript are inline within each HTML file. No framework, no dependencies beyond Google Fonts (CDN).
 
@@ -33,8 +36,9 @@ All styles, markup, and JavaScript are inline within each HTML file. No framewor
 - Tile click animation via `handleTileClick()`
 
 **Current panel states:**
-- Code Runner, Memory Bank, ID Generator, Archive Access, Diagnostic Mode — `status-offline` (red)
-- Weather Grid — `status-development` (yellow), links to `weather.html`
+- Code Runner, Memory Bank, ID Generator, Diagnostic Mode — `status-offline` (red)
+- Weather Grid — `status-online` (green), links to `weather.html`
+- Archive Access — `status-online` (green), links to `archive.html`
 
 ## Weather Page (weather.html)
 
@@ -42,14 +46,31 @@ Fetches live data from the NASA DONKI API on page load using `Promise.allSettled
 
 | Panel | Endpoint |
 |-------|----------|
-| Solar Flares | `/DONKI/WS/get/FLR` |
-| Coronal Mass Ejections | `/DONKI/WS/get/CME` |
-| Geomagnetic Storms | `/DONKI/WS/get/GST` |
+| Solar Flares | `/FLR` |
+| Coronal Mass Ejections | `/CME` |
+| Geomagnetic Storms | `/GST` |
 
+- Base URL: `https://api.nasa.gov/DONKI`
 - Date range is computed dynamically (last 7 days)
 - API key is stored in the `API_KEY` const at the top of the `<script>` block
 - Each panel badge cycles: `FETCHING` → `ONLINE` or `ERROR`
 - Shares the same visual style as `index.html` (grid-bg, particles, Orbitron/Roboto Mono fonts)
+- Header has a `← DASHBOARD` back-link
+
+## Archive Page (archive.html)
+
+Download page for system setup scripts. Two cards:
+
+| Card | Script | Package Manager |
+|------|--------|-----------------|
+| Windows Setup | `scripts/setup.ps1` | winget |
+| Linux Setup | `scripts/setup.sh` | apt / dnf / pacman (auto-detected) |
+
+Both scripts install: Chrome, Steam, Claude, Discord.
+- Each card has an `.app-list` of `.app-chip` tags showing included apps
+- Download links use the `download` attribute to trigger file download
+- Usage instructions shown in a `.usage-block` beneath the download button
+- Shares the same visual style as other pages (grid-bg, particles, back-link)
 
 ## Git Config
 
