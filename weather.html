@@ -40,6 +40,32 @@
             100% { transform: translate(50px, 50px); }
         }
 
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00d4ff;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10px) translateX(100px); opacity: 0; }
+        }
+
         .header {
             position: fixed;
             top: 0;
@@ -346,6 +372,7 @@
 </head>
 <body>
     <div class="grid-bg"></div>
+    <div class="particles" id="particles"></div>
 
     <header class="header">
         <div class="header-left">
@@ -554,6 +581,21 @@
             }
         }
 
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 15 + 's';
+                    particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                    container.appendChild(particle);
+                    setTimeout(() => { if (particle.parentNode) particle.parentNode.removeChild(particle); }, 25000);
+                }, i * 1000);
+            }
+        }
+
         function updateTime() {
             const now = new Date();
             document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', {
@@ -562,8 +604,10 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            createParticles();
             updateTime();
             setInterval(updateTime, 1000);
+            setInterval(createParticles, 20000);
             fetchAll();
         });
     </script>
