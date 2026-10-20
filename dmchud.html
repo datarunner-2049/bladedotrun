@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Mid Carry HUD</title>
+<title>Deadlock HUD</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
@@ -307,7 +307,7 @@ kbd{font-family:var(--display);background:var(--ink);color:#0b0614;padding:0 .35
 
 <div id="app" data-state="idle">
   <header class="top">
-    <div class="brand"><span class="sig">&#10022;</span><span>MID CARRY <em>HUD</em></span><small>Deadlock lane and objective macro timer</small></div>
+    <div class="brand"><span class="sig">&#10022;</span><span>DEADLOCK <em>HUD</em></span><small>Lane and objective macro timer</small></div>
     <div class="ctrls">
       <button type="button" class="pill on" id="sndBtn">Sound on</button>
       <button type="button" class="pill" id="voiceBtn">Voice off</button>
@@ -393,7 +393,7 @@ kbd{font-family:var(--display);background:var(--ink);color:#0b0614;padding:0 .35
 
 <div class="idle" id="idle">
   <div class="card">
-    <h1>MID CARRY<span>HUD</span></h1>
+    <h1>DEADLOCK<span>HUD</span></h1>
     <p>Press Start the instant the in-game clock reads 0:00. Keep this window on your second monitor and let the color tell you what to do.</p>
     <div class="startrow">
       <button type="button" id="startBtn">START THE CLOCK</button>
@@ -435,7 +435,7 @@ if(!TM){
 }
 var E = TM.events, AL = TM.alerts;
 var KIND_ICON = { haunt:'☠', sac:'✦', urn:'⬢', rift:'◉', boss:'♛' };
-var KEY = 'deadlockMidCarryHud.v1';
+var KEY = 'deadlockHud.v1';
 
 /* ================= state ================= */
 var S = { started:false, running:false, base:0, wall:0, speed:1,
@@ -811,7 +811,7 @@ function reset(){
   S.started=false; S.running=false; S.speed=1; S.marks=[]; S.dead=false; S.lastKey='';
   try{ localStorage.removeItem(KEY+'.match'); }catch(e){}
   $('app').dataset.state='idle'; $('idle').hidden=false; $('pauseBtn').textContent='Pause';
-  $('clock').textContent='0:00'; document.title='Mid Carry HUD'; showResume();
+  $('clock').textContent='0:00'; document.title='Deadlock HUD'; showResume();
 }
 function setSound(on,quiet){ S.sound=on; var b=$('sndBtn'); b.textContent=on?'Sound on':'Sound off'; b.classList.toggle('on',on); savePrefs(); if(on&&!quiet){ ensureAudio(); chime('prep'); } }
 function setVoice(on,quiet){ S.voice=on; var b=$('voiceBtn'); b.textContent=on?'Voice on':'Voice off'; b.classList.toggle('on',on); savePrefs(); if(on&&!quiet) say('Voice callouts on'); }
